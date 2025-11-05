@@ -579,17 +579,24 @@
 
         function obtenerUltimosRegistrosPorJuego() {
             const ultimos = {};
-            const indices = {};
             
-            registros.forEach((reg, idx) => {
+            // Primero, encontrar la fecha más reciente para cada juego
+            registros.forEach(reg => {
                 const key = reg.juego;
-                if (!ultimos[key] || reg.fecha >= ultimos[key].fecha) {
-                    if (reg.fecha > (ultimos[key]?.fecha || '')) {
-                        ultimos[key] = reg;
-                        indices[key] = [idx];
-                    } else if (reg.fecha === ultimos[key].fecha) {
-                        indices[key].push(idx);
-                    }
+                if (!ultimos[key] || new Date(reg.fecha) > new Date(ultimos[key].fecha)) {
+                    ultimos[key] = reg;
+                }
+            });
+            
+            // Luego, obtener los índices de estos registros
+            const indices = [];
+            registros.forEach((reg, index) => {
+                const ultimo = ultimos[reg.juego];
+                if (ultimo && reg.fecha === ultimo.fecha && 
+                    reg.depositos === ultimo.depositos && 
+                    reg.retiros === ultimo.retiros && 
+                    reg.saldo === ultimo.saldo) {
+                    indices.push(index);
                 }
             });
             
@@ -606,16 +613,15 @@
             }
 
             const ultimosIndices = obtenerUltimosRegistrosPorJuego();
-            const todosLosUltimos = Object.values(ultimosIndices).flat();
 
             registros.forEach((reg, index) => {
                 const tr = document.createElement('tr');
-                if (todosLosUltimos.includes(index)) {
+                if (ultimosIndices.includes(index)) {
                     tr.className = 'ultimo-registro';
                 }
                 
                 tr.innerHTML = `
-                    <td>${reg.juego} ${todosLosUltimos.includes(index) ? '⭐' : ''}</td>
+                    <td>${reg.juego} ${ultimosIndices.includes(index) ? '⭐' : ''}</td>
                     <td>${formatearFecha(reg.fecha)}</td>
                     <td>$${reg.depositos.toFixed(2)}</td>
                     <td>$${reg.retiros.toFixed(2)}</td>
@@ -634,7 +640,7 @@
             
             const ultimosPorJuego = {};
             registros.forEach(reg => {
-                if (!ultimosPorJuego[reg.juego] || reg.fecha >= ultimosPorJuego[reg.juego].fecha) {
+                if (!ultimosPorJuego[reg.juego] || new Date(reg.fecha) > new Date(ultimosPorJuego[reg.juego].fecha)) {
                     ultimosPorJuego[reg.juego] = reg;
                 }
             });
