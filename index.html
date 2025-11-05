@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Juegos de Casino</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .upload-section {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .upload-section h2 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .upload-area {
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            padding: 6px 12px;
+            font-size: 0.9em;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .export-section {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            background: #28a745;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        .clear-btn {
+            background: #dc3545;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .last-update {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 Control de Juegos de Casino</h1>
+        <p class="subtitle">Sistema de seguimiento para Aviator y Bac Bo</p>
+        <p class="last-update" id="lastUpdate">Sin datos cargados</p>
+
+        <div class="upload-section">
+            <h2>📁 Actualizar Datos desde CSV</h2>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📤</div>
+                <p><strong>Click aquí para cargar tu archivo CSV</strong></p>
+                <p style="font-size: 0.9em; opacity: 0.8;">Formato: Juego;Fecha;Depositos;Retiros;Saldo</p>
+                <input type="file" id="fileInput" accept=".csv" onchange="cargarArchivo(event)">
+            </div>
+            <div class="file-info" id="fileInfo">
+                💡 Los datos se actualizarán automáticamente y se guardarán en tu navegador
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Depósitos</h3>
+                <div class="value" id="totalDepositos">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Retiros</h3>
+                <div class="value" id="totalRetiros">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Saldo Total</h3>
+                <div class="value" id="saldoTotal">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Ganancia/Pérdida</h3>
+                <div class="value" id="gananciaTotal">$0.00</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>📝 Registrar Nueva Transacción Manual</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="juego">Juego</label>
+                    <select id="juego">
+                        <option value="Aviator">Aviator</option>
+                        <option value="Bac Bo">Bac Bo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" id="fecha">
+                </div>
+                <div class="form-group">
+                    <label for="depositos">Depósitos ($)</label>
+                    <input type="number" id="depositos" step="0.01" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="retiros">Retiros ($)</label>
+                    <input type="number" id="retiros" step="0.01" min="0" value="0">
+                </div>
+            </div>
+            <button onclick="agregarRegistro()">➕ Agregar Registro</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Juego</th>
+                        <th>Fecha</th>
+                        <th>Depósitos</th>
+                        <th>Retiros</th>
+                        <th>Saldo</th>
+                        <th>Ganancia/Pérdida</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaRegistros">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="export-section">
+            <button class="export-btn" onclick="exportarCSV()">📥 Exportar a CSV</button>
+            <button class="clear-btn" onclick="limpiarDatos()">🗑️ Limpiar Todos los Datos</button>
+        </div>
+    </div>
+
+    <script>
+        let registros = [];
+        let saldoPorJuego = {
+            'Aviator': 0,
+            'Bac Bo': 0
+        };
+
+        // Establecer fecha actual por defecto
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        // Cargar datos guardados al iniciar
+        function inicializar() {
+            const datosGuardados = JSON.parse(localStorage.getItem('casinoData') || 'null');
+            if (datosGuardados) {
+                registros = datosGuardados.registros;
+                saldoPorJuego = datosGuardados.saldoPorJuego;
+                actualizarTabla();
+                actualizarEstadisticas();
+                actualizarUltimaActualizacion();
+            }
+        }
+
+        // Guardar datos en localStorage
+        function guardarDatos() {
+            const datos = {
+                registros: registros,
+                saldoPorJuego: saldoPorJuego,
+                ultimaActualizacion: new Date().toISOString()
+            };
+            localStorage.setItem('casinoData', JSON.stringify(datos));
+        }
+
+        // Cargar archivo CSV
+        function cargarArchivo(event) {
+            const archivo = event.target.files[0];
+            if (!archivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const contenido = e.target.result;
+                    procesarCSV(contenido);
+                    mostrarNotificacion('✅ Archivo cargado exitosamente', 'success');
+                    document.getElementById('fileInfo').innerHTML = 
+                        `✅ Archivo cargado: <strong>${archivo.name}</strong> (${(archivo.size / 1024).toFixed(2)} KB)`;
+                } catch (error) {
+                    mostrarNotificacion('❌ Error al procesar el archivo', 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(archivo);
+        }
+
+        // Procesar contenido CSV
+        function procesarCSV(contenido) {
+            const lineas = contenido.split('\n').filter(l => l.trim());
+            const nuevosRegistros = [];
+
+            // Saltar la primera línea (encabezados)
+            for (let i = 1; i < lineas.length; i++) {
+                const linea = lineas[i].trim();
+                if (!linea) continue;
+
+                const partes = linea.split(';');
+                if (partes.length < 5) continue;
+
+                const juego = partes[0].trim();
+                const fechaStr = partes[1].trim();
+                const depositos = parseFloat(partes[2].replace(',', '.')) || 0;
+                const retiros = parseFloat(partes[3].replace(',', '.')) || 0;
+                const saldo = parseFloat(partes[4].replace(',', '.')) || 0;
+
+                // Convertir fecha de d/m/yyyy a yyyy-mm-dd
+                const [dia, mes, anio] = fechaStr.split('/');
+                const fecha = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+
+                nuevosRegistros.push({
+                    juego,
+                    fecha,
+                    depositos,
+                    retiros,
+                    saldo
+                });
+            }
+
+            // Actualizar registros (reemplazar datos existentes)
+            registros = nuevosRegistros;
+            
+            // Recalcular saldos basados en los datos importados
+            if (registros.length > 0) {
+                saldoPorJuego = {
+                    'Aviator': 0,
+                    'Bac Bo': 0
+                };
+                
+                // Obtener el último saldo de cada juego
+                const ultimosPorJuego = {};
+                registros.forEach(reg => {
+                    ultimosPorJuego[reg.juego] = reg.saldo;
+                });
+                
+                Object.keys(ultimosPorJuego).forEach(juego => {
+                    saldoPorJuego[juego] = ultimosPorJuego[juego];
+                });
+            }
+
+            guardarDatos();
+            actualizarTabla();
+            actualizarEstadisticas();
+            actualizarUltimaActualizacion();
+        }
+
+        function agregarRegistro() {
+            const juego = document.getElementById('juego').value;
+            const fecha = document.getElementById('fecha').value;
+            const depositos = parseFloat(document.getElementById('depositos').value) || 0;
+            const retiros = parseFloat(document.getElementById('retiros').value) || 0;
+
+            if (!fecha) {
+                mostrarNotificacion('⚠️ Por favor selecciona una fecha', 'error');
+                return;
+            }
+
+            // Calcular nuevo saldo
+            const saldoAnterior = saldoPorJuego[juego];
+            const nuevoSaldo = saldoAnterior + retiros - depositos;
+            saldoPorJuego[juego] = nuevoSaldo;
+
+            const registro = {
+                juego,
+                fecha,
+                depositos,
+                retiros,
+                saldo: nuevoSaldo
+            };
+
+            registros.push(registro);
+            guardarDatos();
+            actualizarTabla();
+            actualizarEstadisticas();
+            actualizarUltimaActualizacion();
+
+            // Limpiar formulario
+            document.getElementById('depositos').value = '0';
+            document.getElementById('retiros').value = '0';
+            
+            mostrarNotificacion('✅ Registro agregado correctamente', 'success');
+        }
+
+        function eliminarRegistro(index) {
+            if (confirm('¿Estás seguro de eliminar este registro?')) {
+                registros.splice(index, 1);
+                recalcularSaldos();
+                guardarDatos();
+                actualizarTabla();
+                actualizarEstadisticas();
+                actualizarUltimaActualizacion();
+                mostrarNotificacion('🗑️ Registro eliminado', 'success');
+            }
+        }
+
+        function recalcularSaldos() {
+            saldoPorJuego = {'Aviator': 0, 'Bac Bo': 0};
+            registros.forEach(reg => {
+                const saldoAnterior = saldoPorJuego[reg.juego];
+                const nuevoSaldo = saldoAnterior + reg.retiros - reg.depositos;
+                saldoPorJuego[reg.juego] = nuevoSaldo;
+                reg.saldo = nuevoSaldo;
+            });
+        }
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('tablaRegistros');
+            tbody.innerHTML = '';
+
+            if (registros.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: #999;">No hay registros. Carga un archivo CSV o agrega registros manualmente.</td></tr>';
+                return;
+            }
+
+            registros.forEach((reg, index) => {
+                const ganancia = reg.retiros - reg.depositos;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${reg.juego}</td>
+                    <td>${formatearFecha(reg.fecha)}</td>
+                    <td>$${reg.depositos.toFixed(2)}</td>
+                    <td>$${reg.retiros.toFixed(2)}</td>
+                    <td>$${reg.saldo.toFixed(2)}</td>
+                    <td class="${ganancia >= 0 ? 'positive' : 'negative'}">
+                        ${ganancia >= 0 ? '+' : ''}$${ganancia.toFixed(2)}
+                    </td>
+                    <td>
+                        <button class="delete-btn" onclick="eliminarRegistro(${index})">❌</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function actualizarEstadisticas() {
+            const totalDepositos = registros.reduce((sum, r) => sum + r.depositos, 0);
+            const totalRetiros = registros.reduce((sum, r) => sum + r.retiros, 0);
+            const saldoTotal = saldoPorJuego['Aviator'] + saldoPorJuego['Bac Bo'];
+            const gananciaTotal = totalRetiros - totalDepositos;
+
+            document.getElementById('totalDepositos').textContent = `$${totalDepositos.toFixed(2)}`;
+            document.getElementById('totalRetiros').textContent = `$${totalRetiros.toFixed(2)}`;
+            document.getElementById('saldoTotal').textContent = `$${saldoTotal.toFixed(2)}`;
+            
+            const gananciaElem = document.getElementById('gananciaTotal');
+            gananciaElem.textContent = `${gananciaTotal >= 0 ? '+' : ''}$${gananciaTotal.toFixed(2)}`;
+            gananciaElem.style.color = gananciaTotal >= 0 ? '#28a745' : '#dc3545';
+        }
+
+        function actualizarUltimaActualizacion() {
+            const datosGuardados = JSON.parse(localStorage.getItem('casinoData') || 'null');
+            if (datosGuardados && datosGuardados.ultimaActualizacion) {
+                const fecha = new Date(datosGuardados.ultimaActualizacion);
+                document.getElementById('lastUpdate').textContent = 
+                    `Última actualización: ${fecha.toLocaleDateString('es-ES')} a las ${fecha.toLocaleTimeString('es-ES')}`;
+            }
+        }
+
+        function formatearFecha(fecha) {
+            const [y, m, d] = fecha.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function exportarCSV() {
+            if (registros.length === 0) {
+                mostrarNotificacion('⚠️ No hay datos para exportar', 'error');
+                return;
+            }
+
+            let csv = 'Juego;Fecha;Depositos;Retiros;Saldo\n';
+            registros.forEach(reg => {
+                csv += `${reg.juego};${formatearFecha(reg.fecha)};${reg.depositos};${reg.retiros};${reg.saldo}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `control_casino_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            mostrarNotificacion('📥 Archivo exportado exitosamente', 'success');
+        }
+
+        function limpiarDatos() {
+            if (confirm('¿Estás seguro de eliminar TODOS los registros? Esta acción no se puede deshacer.')) {
+                registros = [];
+                saldoPorJuego = {'Aviator': 0, 'Bac Bo': 0};
+                localStorage.removeItem('casinoData');
+                actualizarTabla();
+                actualizarEstadisticas();
+                document.getElementById('lastUpdate').textContent = 'Sin datos cargados';
+                document.getElementById('fileInfo').innerHTML = 
+                    '💡 Los datos se actualizarán automáticamente y se guardarán en tu navegador';
+                mostrarNotificacion('🗑️ Todos los datos han sido eliminados', 'success');
+            }
+        }
+
+        function mostrarNotificacion(mensaje, tipo) {
+            const notif = document.createElement('div');
+            notif.className = `notification ${tipo}`;
+            notif.textContent = mensaje;
+            document.body.appendChild(notif);
+
+            setTimeout(() => {
+                notif.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+
+        // Inicializar al cargar la página
+        inicializar();
+    </script>
+</body>
+</html>
