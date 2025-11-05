@@ -355,6 +355,11 @@
             color: #856404;
             font-size: 0.9em;
         }
+        
+        .numero-registro {
+            font-weight: bold;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -402,6 +407,7 @@
         <div class="legend">
             <h4>📌 Leyenda:</h4>
             <p><strong>Las filas resaltadas en amarillo</strong> representan el último registro de cada juego (saldo actual en cuenta).</p>
+            <p><strong>Nº Registro:</strong> Número secuencial que identifica cada registro. Los números más altos son los más recientes.</p>
         </div>
 
         <div class="chart-section">
@@ -443,6 +449,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>Nº</th>
                         <th>Juego</th>
                         <th>Fecha</th>
                         <th>Depósitos</th>
@@ -465,6 +472,7 @@
     <script>
         let registros = [];
         let graficoSaldos = null;
+        let contadorRegistros = 0;
 
         document.getElementById('fecha').valueAsDate = new Date();
 
@@ -472,6 +480,10 @@
             const datosGuardados = JSON.parse(localStorage.getItem('casinoData') || 'null');
             if (datosGuardados) {
                 registros = datosGuardados.registros;
+                // Encontrar el máximo número de registro para continuar desde allí
+                if (registros.length > 0) {
+                    contadorRegistros = Math.max(...registros.map(r => r.numeroRegistro || 0));
+                }
                 actualizarTodo();
             }
         }
@@ -524,7 +536,9 @@
                 const [dia, mes, anio] = fechaStr.split('/');
                 const fecha = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
 
+                contadorRegistros++;
                 nuevosRegistros.push({
+                    numeroRegistro: contadorRegistros,
                     juego,
                     fecha,
                     depositos,
@@ -555,7 +569,15 @@
                 return;
             }
 
-            const registro = { juego, fecha, depositos, retiros, saldo };
+            contadorRegistros++;
+            const registro = { 
+                numeroRegistro: contadorRegistros,
+                juego, 
+                fecha, 
+                depositos, 
+                retiros, 
+                saldo 
+            };
             registros.push(registro);
             
             guardarDatos();
@@ -580,22 +602,19 @@
         function obtenerUltimosRegistrosPorJuego() {
             const ultimos = {};
             
-            // Primero, encontrar la fecha más reciente para cada juego
+            // Encontrar el registro con el número más alto para cada juego
             registros.forEach(reg => {
                 const key = reg.juego;
-                if (!ultimos[key] || new Date(reg.fecha) > new Date(ultimos[key].fecha)) {
+                if (!ultimos[key] || reg.numeroRegistro > ultimos[key].numeroRegistro) {
                     ultimos[key] = reg;
                 }
             });
             
-            // Luego, obtener los índices de estos registros
+            // Obtener los índices de estos registros
             const indices = [];
             registros.forEach((reg, index) => {
                 const ultimo = ultimos[reg.juego];
-                if (ultimo && reg.fecha === ultimo.fecha && 
-                    reg.depositos === ultimo.depositos && 
-                    reg.retiros === ultimo.retiros && 
-                    reg.saldo === ultimo.saldo) {
+                if (ultimo && reg.numeroRegistro === ultimo.numeroRegistro) {
                     indices.push(index);
                 }
             });
@@ -608,26 +627,32 @@
             tbody.innerHTML = '';
 
             if (registros.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">No hay registros. Carga un archivo CSV o agrega sesiones manualmente.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: #999;">No hay registros. Carga un archivo CSV o agrega sesiones manualmente.</td></tr>';
                 return;
             }
 
             const ultimosIndices = obtenerUltimosRegistrosPorJuego();
 
-            registros.forEach((reg, index) => {
+            // Ordenar registros por número de registro (más recientes primero)
+            const registrosOrdenados = [...registros].sort((a, b) => b.numeroRegistro - a.numeroRegistro);
+
+            registrosOrdenados.forEach((reg, index) => {
                 const tr = document.createElement('tr');
-                if (ultimosIndices.includes(index)) {
+                const indiceOriginal = registros.findIndex(r => r.numeroRegistro === reg.numeroRegistro);
+                
+                if (ultimosIndices.includes(indiceOriginal)) {
                     tr.className = 'ultimo-registro';
                 }
                 
                 tr.innerHTML = `
-                    <td>${reg.juego} ${ultimosIndices.includes(index) ? '⭐' : ''}</td>
+                    <td class="numero-registro">${reg.numeroRegistro}</td>
+                    <td>${reg.juego} ${ultimosIndices.includes(indiceOriginal) ? '⭐' : ''}</td>
                     <td>${formatearFecha(reg.fecha)}</td>
                     <td>$${reg.depositos.toFixed(2)}</td>
                     <td>$${reg.retiros.toFixed(2)}</td>
                     <td>$${reg.saldo.toFixed(2)}</td>
                     <td>
-                        <button class="delete-btn" onclick="eliminarRegistro(${index})">❌</button>
+                        <button class="delete-btn" onclick="eliminarRegistro(${indiceOriginal})">❌</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -640,7 +665,7 @@
             
             const ultimosPorJuego = {};
             registros.forEach(reg => {
-                if (!ultimosPorJuego[reg.juego] || new Date(reg.fecha) > new Date(ultimosPorJuego[reg.juego].fecha)) {
+                if (!ultimosPorJuego[reg.juego] || reg.numeroRegistro > ultimosPorJuego[reg.juego].numeroRegistro) {
                     ultimosPorJuego[reg.juego] = reg;
                 }
             });
@@ -825,6 +850,7 @@
         function limpiarDatos() {
             if (confirm('¿Estás seguro de eliminar TODOS los registros? Esta acción no se puede deshacer.')) {
                 registros = [];
+                contadorRegistros = 0;
                 localStorage.removeItem('casinoData');
                 actualizarTodo();
                 document.getElementById('lastUpdate').textContent = 'Sin datos cargados';
