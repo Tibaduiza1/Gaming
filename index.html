@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Juegos de Casino</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-moment/1.0.1/chartjs-adapter-moment.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -656,7 +658,17 @@
         }
 
         function actualizarGrafico() {
-            const ctx = document.getElementById('saldoChart').getContext('2d');
+            if (registros.length === 0) {
+                const ctx = document.getElementById('saldoChart');
+                ctx.parentElement.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay datos para mostrar en el gráfico</p>';
+                return;
+            }
+
+            const canvas = document.getElementById('saldoChart');
+            if (!canvas) {
+                return;
+            }
+            const ctx = canvas.getContext('2d');
             
             const registrosPorJuego = {};
             registros.forEach(reg => {
@@ -674,8 +686,8 @@
             });
 
             const colores = {
-                'Aviator': { border: '#667eea', background: 'rgba(102, 126, 234, 0.1)' },
-                'Bac Bo': { border: '#fd7e14', background: 'rgba(253, 126, 20, 0.1)' }
+                'Aviator': { border: '#667eea', background: 'rgba(102, 126, 234, 0.2)' },
+                'Bac Bo': { border: '#fd7e14', background: 'rgba(253, 126, 20, 0.2)' }
             };
 
             const datasets = Object.keys(registrosPorJuego).map(juego => ({
@@ -684,8 +696,10 @@
                 borderColor: colores[juego].border,
                 backgroundColor: colores[juego].background,
                 borderWidth: 3,
-                tension: 0.4,
-                fill: true
+                tension: 0.3,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7
             }));
 
             if (graficoSaldos) {
@@ -699,11 +713,22 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: true, position: 'top' },
+                        legend: { 
+                            display: true, 
+                            position: 'top',
+                            labels: {
+                                font: { size: 14 },
+                                padding: 15
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                                },
+                                title: function(context) {
+                                    const fecha = new Date(context[0].parsed.x);
+                                    return fecha.toLocaleDateString('es-ES');
                                 }
                             }
                         }
@@ -711,16 +736,38 @@
                     scales: {
                         x: {
                             type: 'time',
-                            time: { unit: 'day', displayFormats: { day: 'DD/MM' } },
-                            title: { display: true, text: 'Fecha' }
+                            time: { 
+                                unit: 'day',
+                                tooltipFormat: 'DD/MM/YYYY',
+                                displayFormats: { 
+                                    day: 'DD/MM/YYYY' 
+                                }
+                            },
+                            title: { 
+                                display: true, 
+                                text: 'Fecha',
+                                font: { size: 14 }
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
                         },
                         y: {
                             beginAtZero: true,
-                            title: { display: true, text: 'Saldo ($)' },
+                            title: { 
+                                display: true, 
+                                text: 'Saldo ($)',
+                                font: { size: 14 }
+                            },
                             ticks: {
                                 callback: function(value) {
                                     return '$' + value.toFixed(0);
                                 }
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
                             }
                         }
                     }
